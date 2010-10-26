@@ -195,6 +195,12 @@ int insert(leaf *newleaf, node *n)
     else
         bits2 = -1;
 
+    if (rdx_min(bits, bits2) < n->pos) {
+        if (bits >= bits2)
+            return insert_leaf(newleaf, n->left, n);
+        return insert_leaf(newleaf, n->right, n);
+    }
+
     if (bits >= bits2) {
          if (lefty->color)
             return insert_leaf(newleaf, n->left, n);
