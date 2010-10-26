@@ -265,11 +265,13 @@ static int get_internal(char *key, node *root, int len)
         return 0;
     }
     if (root->color) {
-        printf("found %s:%s\n", key, (char*)((leaf*)root)->value);
+        if (!strncmp(key, root->key, root->pos))
+            printf("%s: %s\n", key, (char*)((leaf*)root)->value);
+        else
+            printf("%s: NOT FOUND\n", key);
         return 0;
     }
 
-    // recall that in the case of a prefix, we install it in the opposite
     if (get_bit_at(key, root->pos)) {
         get_internal(key, root->right, len);
     } else {
@@ -293,7 +295,7 @@ static char *reverse(char *c)
     //in-place reversal
     int len = strlen(c), i;
     char *str = malloc(len + 1);
-    strcpy(str, c); 
+    strcpy(str, c);
     for (i = 0; i < len/2; i++) {
         int tmp = str[i];
         str[i] = str[len - i - 1];
