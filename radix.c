@@ -294,7 +294,7 @@ static int get_internal(char *key, node *root, int len)
 
 static inline int keylen(char *str)
 {
-    return 8 * strlen(str) - 1;
+    return 8 * (strlen(str) + 1) - 1;
 }
 
 int rdx_get(char *key, node *root)
