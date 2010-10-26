@@ -36,9 +36,39 @@ typedef struct node {
     void *right;
 }node;
 
+#ifdef MSB_FIRST
+static inline int count_bits(char *k1, char *k2, int count)
+{
+    int mask = 128;
+    while (~(*k1 ^ *k2) & mask && --count) {
+        mask >>= 1;
+        if (0 == mask) {
+            mask = 128;
+            k1 += 1;
+            k2 += 1;
+        }
+    }
+    return count;
+}
+#else
+static inline int count_bits(char *k1, char *k2, int count)
+{
+    int mask = 1;
+    while (~(*k1 ^ *k2) & mask && --count) {
+        mask <<= 1;
+        if (256 == mask) {
+            mask = 1;
+            k1 += 1;
+            k2 += 1;
+        }
+    }
+    return count;
+}
+#endif
+
 static int count_common_bits(char *k1, char *k2, int max)
 {
-    int count = max, mask = 1;
+    int count = max;
     // Look at the MSB first;
     // XXX SIMD-ify?
     while (*k1 == *k2 && count >= sizeof(int) * 8) {
@@ -54,16 +84,21 @@ static int count_common_bits(char *k1, char *k2, int max)
         k2++;
         count -= 8;
     }
-    while (~(*k1 ^ *k2) & mask && --count) {
-        mask <<= 1;
-        if (128 == mask) {
-            mask = 1;
-            k1 += 1;
-            k2 += 1;
-        }
-    }
-    return max - count;
+
+    return max - count_bits(k1, k2, count);
 }
+
+#ifdef MSB_FIRST
+static inline int shift(int i)
+{
+    return 128 >> (i & 7);
+}
+#else
+static inline int shift(int i)
+{
+    return 1 << (i & 7);
+}
+#endif
 
 static inline int get_bit_at(char *k, int i)
 {
@@ -71,7 +106,7 @@ static inline int get_bit_at(char *k, int i)
     // zero based index, so for 1 == i mod 8,
     // look at second bit. slightly unintuitive
     int bytes = i >> 3;
-    int mask = 1 << (i & 7);
+    int mask = shift(i);
     k += bytes;
     return *k & mask;
 }
