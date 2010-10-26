@@ -119,7 +119,6 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
         return insert_leaf(newleaf, (leaf*)parent, parent->parent);
     } else {
         // otherwise, add newleaf as a child of inner
-        leaf *target = sibling;
         inner->pos = idx;
         inner->key = newleaf->key;
         newleaf->parent = parent;
@@ -133,9 +132,9 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
         }
 
         // now find out which branch of parent to assign inner
-        if (parent->left == target)
+        if (parent->left == sibling)
             parent->left = inner;
-        else if (parent->right == target)
+        else if (parent->right == sibling)
             parent->right = inner;
         else {
             fprintf(stderr, "inappropriate child %s found in parent when inserting leaf %s (expected %s)\n", ((node*)parent->right)->key, newleaf->key, sibling->key);
