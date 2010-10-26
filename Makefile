@@ -2,4 +2,4 @@
 # Josh Allmann <joshua.allmann@gmail.com>
 
 default:
-	gcc -g -DMSB_FIRST radix.c
+	gcc -g -DMSB_FIRST radix.c test.c
