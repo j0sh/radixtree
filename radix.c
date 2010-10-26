@@ -341,13 +341,13 @@ insert(&b1, &root);
          fooa = NEWLEAF("fooa"),
          gosh = NEWLEAF("gosh");
 
-    INSERT(fooquick);
-    INSERT(fooquux);
     INSERT(gosh);
-    INSERT(foo);
     INSERT(bar);
-    //INSERT(foobar);
-    //INSERT(foospace);
+    INSERT(fooquux);
+    INSERT(fooquick);
+    INSERT(foobar);
+    INSERT(foospace);
+    INSERT(foo);
     //INSERT(foobar);
 #endif
 
@@ -370,8 +370,11 @@ insert(&b1, &root);
 
     print(&root);
     rdx_get("foospace", &root);
+    rdx_get("foobar", &root);
     rdx_get("foo", &root);
     rdx_get("fooquux", &root);
+    rdx_get("gosh", &root);
+    rdx_get("fooquick", &root);
     rdx_get("bar", &root);
 #undef INSERT
 
