@@ -98,7 +98,6 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
     if (!parent) {
         parent = (node*)sibling;
         // do an in-place transform. TODO ascii art
-        printf("inserting %s in empty parent\n", newleaf->key);
         inner->left = parent->left;
         inner->right = parent->right;
         inner->key = parent->key;
@@ -125,17 +124,6 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
         inner->key = newleaf->key;
         newleaf->parent = parent;
 
-        // idx == maxlen indicates a prefix.
-        // ensure it is on the wrong side.
-        // why it has to be newleaf, i have no fucking clue
-        if (idx == max_len && max_len == newleaf->keylen) {
-            leaf *tmp = newleaf;
-            printf("why not: new %s, sib %s\n", newleaf->key, sibling->key);
-            newleaf = sibling;
-            sibling = tmp;
-            target = newleaf;
-        }
-        printf("inseting %s in populated node\n", newleaf->key);
         if (bit) {
             inner->right = newleaf;
             inner->left = sibling;
@@ -174,21 +162,12 @@ int insert(leaf *newleaf, node *n)
             newleaf->parent = n;
             return 0;
         }
-        // XXX BROKEN WHEN INSERTING A PREFIX
-
         // else convert root to inner and attach leaves
         oldkey = ((leaf*)n->value)->key;
         max_len = rdx_min(nklen, ((leaf*)n->value)->keylen);
 
         // count bits in common
         bits = count_common_bits(key, oldkey, max_len);
-
-        if (bits == max_len) {
-            // special case for prefixes: reverse them
-            leaf *tmp = newleaf;
-            newleaf = n->value;
-            n->value = tmp;
-        }
 
         if (get_bit_at(key, bits)) {
             n->right = newleaf;
@@ -283,8 +262,7 @@ static int get_internal(char *key, node *root, int len)
     }
 
     // recall that in the case of a prefix, we install it in the opposite
-    if ((len != root->pos && get_bit_at(key, root->pos)) ||
-        (len == root->pos && !get_bit_at(key, root->pos))) {
+    if (get_bit_at(key, root->pos)) {
         get_internal(key, root->right, len);
     } else {
         get_internal(key, root->left, len);
