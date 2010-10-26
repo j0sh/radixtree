@@ -102,8 +102,10 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
         inner->right = parent->right;
         inner->key = parent->key;
         inner->pos = parent->pos;
-        inner->parent = parent;
         parent->pos = idx;
+        ((node*)parent->left)->parent = inner;
+        ((node*)parent->right)->parent = inner;
+        newleaf->parent = parent;
         if (bit) {
             parent->right = newleaf;
             parent->left = inner;
@@ -121,7 +123,8 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
         // otherwise, add newleaf as a child of inner
         inner->pos = idx;
         inner->key = newleaf->key;
-        newleaf->parent = parent;
+        newleaf->parent = inner;
+        sibling->parent = inner;
 
         if (bit) {
             inner->right = newleaf;
@@ -137,7 +140,7 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
         else if (parent->right == sibling)
             parent->right = inner;
         else {
-            fprintf(stderr, "inappropriate child %s found in parent when inserting leaf %s (expected %s)\n", ((node*)parent->right)->key, newleaf->key, sibling->key);
+            fprintf(stderr, "inappropriate child %s/%s found in parent when inserting leaf %s (expected %s)\n", ((node*)parent->left)->key, ((node*)parent->right)->key, newleaf->key, sibling->key);
             return -1;
         }
     }
