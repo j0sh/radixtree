@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     root.color = 0;
 
 #define INSERT(val) insert(&val, &root)
-#define RGET(val) rdx_get(val, &root)
+#define RGET(val) rdx_print_value(val, &root)
 
 #if 0
 // this test set is somewhat broken
