@@ -29,6 +29,7 @@ static void print_in_order(node *root)
 {
     if (!root) return;
     if (root->color) {
+        if (2 == root->color) root = root->value;
         printf("%s: %s\n", root->key, (char*)root->value);
         return;
     }

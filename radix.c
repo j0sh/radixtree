@@ -207,22 +207,22 @@ int rxt_put(char *key, void *value, node *n)
     if (!(n->left || n->right)) {
         leaf *sib;
         int bits;
+        NEWLEAF(newleaf, key, value);
         // create root
         if (!n->value) {
             // attach root
-            n->color = 1;
-            n->value = value;
-            n->key = key;
-            n->pos = keylen(key);
+            n->color = 2;
+            n->value = newleaf;
             return 0;
         }
         // else convert root to inner and attach leaves
+        sib = n->value;
+        NEWLEAF(newleaf, key, value);
 
         // count bits in common
-        bits = count_common_bits(key, n->key, rdx_min(keylen(key), n->pos));
+        bits = count_common_bits(key, sib->key,
+                    rdx_min(newleaf->keylen, sib->keylen));
 
-        NEWLEAF(sib, n->key, n->value);
-        NEWLEAF(newleaf, key, value);
 
         if (get_bit_at(key, bits)) {
             n->right = newleaf;
@@ -296,6 +296,7 @@ static leaf* get_internal(char *key, node *root)
     if (!root) return NULL;
 
     if (root->color) {
+        if (2 == root->color) root = root->value;
         if (!strncmp(key, root->key, root->pos))
             return (leaf*)root;
         return NULL;
