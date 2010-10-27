@@ -286,14 +286,3 @@ void* rdx_get(char *key, node *root)
 {
     return get_internal(key, root)->value;
 }
-
-void rdx_print_value(char *key, node *root)
-{
-    char *value = rdx_get(key, root);
-    if (value)
-        printf("%s: %s\n", key, value);
-    else
-        printf("%s: NOT FOUND\n", key);
-}
-
-

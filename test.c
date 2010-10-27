@@ -51,6 +51,15 @@ static void print_in_order(node *root)
     print_in_order(root->right);
 }
 
+static void print_value(char *key, node *root)
+{
+    char *value = rdx_get(key, root);
+    if (value)
+        printf("%s: %s\n", key, value);
+    else
+        printf("%s: NOT FOUND\n", key);
+}
+
 int main(int argc, char **argv)
 {
     node root;
@@ -59,7 +68,7 @@ int main(int argc, char **argv)
     root.color = 0;
 
 #define INSERT(val) insert(&val, &root)
-#define RGET(val) rdx_print_value(val, &root)
+#define RGET(val) print_value(val, &root)
 
 #if 0
 // this test set is somewhat broken
