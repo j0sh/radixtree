@@ -288,26 +288,19 @@ void print(node *root)
     printf("\n");
 }
 
-static int get_internal(char *key, node *root, int len)
+static leaf* get_internal(char *key, node *root)
 {
-    if (!root) {
-        printf("%s not found.\n", key);
-        return 0;
-    }
+    if (!root) return NULL;
+
     if (root->color) {
         if (!strncmp(key, root->key, root->pos))
-            printf("%s: %s\n", key, (char*)((leaf*)root)->value);
-        else
-            printf("%s: NOT FOUND\n", key);
-        return 0;
+            return (leaf*)root;
+        return NULL;
     }
 
-    if (get_bit_at(key, root->pos)) {
-        get_internal(key, root->right, len);
-    } else {
-        get_internal(key, root->left, len);
-    }
-    return 0;
+    if (get_bit_at(key, root->pos))
+        return get_internal(key, root->right);
+    return get_internal(key, root->left);
 }
 
 static inline int keylen(char *str)
@@ -315,9 +308,18 @@ static inline int keylen(char *str)
     return 8 * (strlen(str) + 1) - 1;
 }
 
-int rdx_get(char *key, node *root)
+void* rdx_get(char *key, node *root)
 {
-    return get_internal(key, root, keylen(key));
+    return get_internal(key, root)->value;
+}
+
+void rdx_print_value(char *key, node *root)
+{
+    char *value = rdx_get(key, root);
+    if (value)
+        printf("%s: %s\n", key, value);
+    else
+        printf("%s: NOT FOUND\n", key);
 }
 
 static char *reverse(char *c)
