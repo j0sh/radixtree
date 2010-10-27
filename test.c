@@ -6,15 +6,10 @@
 
 static char *reverse(char *c)
 {
-    //in-place reversal
     int len = strlen(c), i;
     char *str = malloc(len + 1);
-    strcpy(str, c);
-    for (i = 0; i < len/2; i++) {
-        int tmp = str[i];
-        str[i] = str[len - i - 1];
-        str[len - i - 1] = tmp;
-    }
+    for (i = 0; i < len; i++)
+        str[i] = c[len - i - 1];
     str[len] = '\0';
     return str;
 }
