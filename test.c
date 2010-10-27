@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "radix.h"
 
@@ -32,6 +33,12 @@ static inline int keylen(char *str)
     .color = 1, \
     .key = val, \
     .keylen = bits }
+
+int count_comparisons(node *root)
+{
+    if (!root || root->color) return 0;
+    return root->pos + count_comparisons(root->left) + count_comparisons(root->right);
+}
 
 int main(int argc, char **argv)
 {
@@ -114,6 +121,8 @@ print(&root);
     RGET("rubicon");
     RGET("romanus");
 #endif
+
+    printf("COMPARISONS: %d\n", count_comparisons(&root));
 
 #undef INSERT
 #undef RGET
