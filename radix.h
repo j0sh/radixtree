@@ -24,7 +24,7 @@ typedef struct node {
 }node;
 
 void print(node*);
-int insert(leaf*, node*);
+int rxt_put(char*, void *, node*);
 void* rdx_get(char*, node*);
 
 #endif // RADIXTREE

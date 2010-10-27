@@ -157,47 +157,14 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
 }
 
 // color: 1 for leaf, 0 for inner
-
-int insert(leaf *newleaf, node *n)
+static int insert_internal(leaf *newleaf, node *n)
 {
-    int mask, nklen = newleaf->keylen, bits, bits2;
-    char *key = newleaf->key;
-    // this special case takes care of the first two entries
-    if (!(n->left || n->right)) {
-        char *oldkey;
-        int max_len;
-        // create root
-        if (!n->value) {
-            // attach root
-            n->value = newleaf;
-            newleaf->parent = n;
-            return 0;
-        }
-        // else convert root to inner and attach leaves
-        oldkey = ((leaf*)n->value)->key;
-        max_len = rdx_min(nklen, ((leaf*)n->value)->keylen);
-
-        // count bits in common
-        bits = count_common_bits(key, oldkey, max_len);
-
-        if (get_bit_at(key, bits)) {
-            n->right = newleaf;
-            n->left = n->value;
-        } else {
-            n->right = n->value;
-            n->left = newleaf;
-        }
-        newleaf->parent = n;
-        n->value = NULL;
-        n->key = key;
-        n->pos = bits;
-        return 0;
-    }
-
     // FIRST: check for common bits
-    node *lefty = n->left, *righty = n->right;
-    bits = count_common_bits(key, lefty->key, rdx_min(nklen, lefty->pos));
-    bits2 = count_common_bits(key, righty->key, rdx_min(nklen, righty->pos));
+    node *left = n->left, *right = n->right;
+    int bits   = count_common_bits(newleaf->key, left->key,
+                                   rdx_min(newleaf->keylen, left->pos));
+    int bits2  = count_common_bits(newleaf->key, right->key,
+                                   rdx_min(newleaf->keylen, right->pos));
 
     if (rdx_min(bits, bits2) < n->pos) {
         if (bits >= bits2)
@@ -206,16 +173,78 @@ int insert(leaf *newleaf, node *n)
     }
 
     if (bits >= bits2) {
-         if (lefty->color)
+         if (left->color)
             return insert_leaf(newleaf, n->left, n);
-        insert(newleaf, lefty);
+        insert_internal(newleaf, left);
     } else {
-        if (righty->color)
+        if (right->color)
             return insert_leaf(newleaf, n->right, n);
-        insert(newleaf, righty);
+        insert_internal(newleaf, right);
     }
 
-    return 0;
+    return -1; // this should never happen
+}
+
+static inline int keylen(char *str)
+{
+    return 8 * (strlen(str) + 1) - 1;
+}
+
+int rxt_put(char *key, void *value, node *n)
+{
+#define NEWLEAF(nl, k, v) \
+    nl = malloc(sizeof(leaf)); \
+    if (!nl) return -1; \
+    nl->key = k; \
+    nl->keylen = keylen(k); \
+    nl->value = v; \
+    nl->color = 1; \
+    nl->parent = n
+
+    leaf *newleaf;
+
+    // this special case takes care of the first two entries
+    if (!(n->left || n->right)) {
+        leaf *sib;
+        int bits;
+        // create root
+        if (!n->value) {
+            // attach root
+            n->color = 1;
+            n->value = value;
+            n->key = key;
+            n->pos = keylen(key);
+            return 0;
+        }
+        // else convert root to inner and attach leaves
+
+        // count bits in common
+        bits = count_common_bits(key, n->key, rdx_min(keylen(key), n->pos));
+
+        NEWLEAF(sib, n->key, n->value);
+        NEWLEAF(newleaf, key, value);
+
+        if (get_bit_at(key, bits)) {
+            n->right = newleaf;
+            n->left = sib;
+        } else {
+            n->right = sib;
+            n->left = newleaf;
+        }
+        n->value = NULL;
+        n->key = key;
+        n->pos = bits;
+        n->color = 0;
+        return 0;
+    }
+
+
+    NEWLEAF(newleaf, key, value);
+    newleaf->parent = NULL; // null for now
+
+    return insert_internal(newleaf, n);
+
+#undef NEWELEAF
 }
 
 // prints the tree level by level, for debug purposes.
@@ -275,11 +304,6 @@ static leaf* get_internal(char *key, node *root)
     if (get_bit_at(key, root->pos))
         return get_internal(key, root->right);
     return get_internal(key, root->left);
-}
-
-static inline int keylen(char *str)
-{
-    return 8 * (strlen(str) + 1) - 1;
 }
 
 void* rdx_get(char *key, node *root)

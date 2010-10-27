@@ -19,21 +19,6 @@ static char *reverse(char *c)
     return str;
 }
 
-static inline int keylen(char *str)
-{
-    return 8 * (strlen(str) + 1) - 1;
-}
-
-#define NEWLEAF(str) { .color = 1, \
-                       .key = str, \
-                       .value = reverse(str), \
-                       .keylen = keylen(str)  }
-
-#define BINLEAF(val, bits) { \
-    .color = 1, \
-    .key = val, \
-    .keylen = bits }
-
 static int count_comparisons(node *root)
 {
     if (!root || root->color) return 0;
@@ -67,7 +52,7 @@ int main(int argc, char **argv)
     root.parent = root.value = NULL;
     root.color = 0;
 
-#define INSERT(val) insert(&val, &root)
+#define INSERT(val) rxt_put(#val, reverse(#val), &root)
 #define RGET(val) print_value(val, &root)
 
 #if 0
@@ -87,15 +72,6 @@ print(&root);
 #endif
 
 #if 0
-    leaf fooquux = NEWLEAF("fooquux"),
-         foobar = NEWLEAF("foobar"),
-         foo = NEWLEAF("foo"),
-         foospace = NEWLEAF("foospace"),
-         fooquick = NEWLEAF("fooquick"),
-         bar = NEWLEAF("bar"),
-         fooa = NEWLEAF("fooa"),
-         gosh = NEWLEAF("gosh");
-
     INSERT(gosh);
     INSERT(foo);
     INSERT(foobar);
@@ -118,20 +94,13 @@ print(&root);
 #endif
 
 #if 1
-    leaf romane = NEWLEAF("romane"),
-         romanus = NEWLEAF("romanus"),
-         romulus = NEWLEAF("romulus"),
-         rubens = NEWLEAF("rubens"),
-         ruber = NEWLEAF("ruber"),
-         rubicon = NEWLEAF("rubicon"),
-         rubicundus = NEWLEAF("rubicundus");
-    insert(&romane, &root);
-    insert(&romanus, &root);
-    insert(&romulus, &root);
-    insert(&rubens, &root);
-    insert(&ruber, &root);
-    insert(&rubicon, &root);
-    insert(&rubicundus, &root);
+    INSERT(romane);
+    INSERT(romanus);
+    INSERT(rubicon);
+    INSERT(romulus);
+    INSERT(rubens);
+    INSERT(ruber);
+    INSERT(rubicundus);
 
     print(&root);
     RGET("romane");
