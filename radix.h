@@ -1,16 +1,6 @@
 #ifndef RADIXTREE
 #define RADIXTREE
 
-typedef struct {
-    char color;
-    char *key;
-    int level; // tree level; for debug only
-    int parent_id; // for debug only
-    int keylen; // size in bits
-    void *value;
-    struct node *parent;
-}leaf;
-
 typedef struct node {
     int color;
     char *key; // only stores pos and beyond

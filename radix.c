@@ -90,7 +90,7 @@ static inline int rdx_min(int a, int b)
     return a > b ? b : a;
 }
 
-static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
+static int insert_leaf(node *newleaf, node *sibling, node *parent)
 {
     int idx, bit, max_len;
     node *inner = malloc(sizeof(node));
@@ -100,20 +100,20 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
     inner->value = NULL;
     inner->parent = parent;
 
-    max_len = rdx_min(newleaf->keylen, sibling->keylen);
+    max_len = rdx_min(newleaf->pos, sibling->pos);
     idx  = count_common_bits(newleaf->key, sibling->key, max_len);
     bit = get_bit_at(newleaf->key, idx);
 
     if (!parent) {
-        parent = (node*)sibling;
+        parent = sibling;
         // do an in-place transform. TODO ascii art
         inner->left = parent->left;
         inner->right = parent->right;
         inner->key = parent->key;
         inner->pos = parent->pos;
         parent->pos = idx;
-        ((node*)parent->left)->parent = inner;
-        ((node*)parent->right)->parent = inner;
+        parent->left->parent = inner;
+        parent->right->parent = inner;
         newleaf->parent = parent;
         if (bit) {
             parent->right = newleaf;
@@ -127,7 +127,7 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
 
     if (idx < parent->pos) {
         // in this case, set inner to the two children of parent.
-        return insert_leaf(newleaf, (leaf*)parent, parent->parent);
+        return insert_leaf(newleaf, parent, parent->parent);
     } else {
         // otherwise, add newleaf as a child of inner
         inner->pos = idx;
@@ -149,7 +149,7 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
         else if (parent->right == sibling)
             parent->right = inner;
         else {
-            fprintf(stderr, "inappropriate child %s/%s found in parent when inserting leaf %s (expected %s)\n", ((node*)parent->left)->key, ((node*)parent->right)->key, newleaf->key, sibling->key);
+            fprintf(stderr, "inappropriate child %s/%s found in parent when inserting leaf %s (expected %s)\n", parent->left->key, parent->right->key, newleaf->key, sibling->key);
             return -1;
         }
     }
@@ -157,14 +157,14 @@ static int insert_leaf(leaf *newleaf, leaf *sibling, node *parent)
 }
 
 // color: 1 for leaf, 0 for inner
-static int insert_internal(leaf *newleaf, node *n)
+static int insert_internal(node *newleaf, node *n)
 {
     // FIRST: check for common bits
     node *left = n->left, *right = n->right;
     int bits   = count_common_bits(newleaf->key, left->key,
-                                   rdx_min(newleaf->keylen, left->pos));
+                                   rdx_min(newleaf->pos, left->pos));
     int bits2  = count_common_bits(newleaf->key, right->key,
-                                   rdx_min(newleaf->keylen, right->pos));
+                                   rdx_min(newleaf->pos, right->pos));
 
     if (rdx_min(bits, bits2) < n->pos) {
         if (bits >= bits2)
@@ -193,19 +193,21 @@ static inline int keylen(char *str)
 int rxt_put(char *key, void *value, node *n)
 {
 #define NEWLEAF(nl, k, v) \
-    nl = malloc(sizeof(leaf)); \
+    nl = malloc(sizeof(node)); \
     if (!nl) return -1; \
     nl->key = k; \
-    nl->keylen = keylen(k); \
+    nl->pos = keylen(k); \
     nl->value = v; \
     nl->color = 1; \
-    nl->parent = n
+    nl->parent = n; \
+    nl->left = NULL; \
+    nl->right = NULL
 
-    leaf *newleaf;
+    node *newleaf;
 
     // this special case takes care of the first two entries
     if (!(n->left || n->right)) {
-        leaf *sib;
+        node *sib;
         int bits;
         NEWLEAF(newleaf, key, value);
         // create root
@@ -221,7 +223,7 @@ int rxt_put(char *key, void *value, node *n)
 
         // count bits in common
         bits = count_common_bits(key, sib->key,
-                    rdx_min(newleaf->keylen, sib->keylen));
+                    rdx_min(newleaf->pos, sib->pos));
 
 
         if (get_bit_at(key, bits)) {
@@ -270,7 +272,7 @@ void print(node *root)
             printf("%s[%d/%d] , ", n->key, read, n->parent_id);
         else {
             if (n->value)
-                printf("%d (%s)[%d/%d] ,", n->pos, ((leaf*)n->value)->key, read, n->parent_id);
+                printf("%d (%s)[%d/%d] ,", n->pos, ((node*)n->value)->key, read, n->parent_id);
             else
                 printf("%d[%d/%d] , ", n->pos, read, n->parent_id);
 
@@ -291,14 +293,14 @@ void print(node *root)
     printf("\n");
 }
 
-static leaf* get_internal(char *key, node *root)
+static node* get_internal(char *key, node *root)
 {
     if (!root) return NULL;
 
     if (root->color) {
         if (2 == root->color) root = root->value;
         if (!strncmp(key, root->key, root->pos))
-            return (leaf*)root;
+            return root;
         return NULL;
     }
 
@@ -309,7 +311,7 @@ static leaf* get_internal(char *key, node *root)
 
 void* rdx_get(char *key, node *root)
 {
-    leaf *n = get_internal(key, root);
+    node *n = get_internal(key, root);
     if (!n) return NULL;
     return n->value;
 }
