@@ -34,10 +34,21 @@ static inline int keylen(char *str)
     .key = val, \
     .keylen = bits }
 
-int count_comparisons(node *root)
+static int count_comparisons(node *root)
 {
     if (!root || root->color) return 0;
     return root->pos + count_comparisons(root->left) + count_comparisons(root->right);
+}
+
+static void print_in_order(node *root)
+{
+    if (!root) return;
+    if (root->color) {
+        printf("%s: %s\n", root->key, (char*)root->value);
+        return;
+    }
+    print_in_order(root->left);
+    print_in_order(root->right);
 }
 
 int main(int argc, char **argv)
@@ -122,6 +133,7 @@ print(&root);
     RGET("romanus");
 #endif
 
+    print_in_order(&root);
     printf("COMPARISONS: %d\n", count_comparisons(&root));
 
 #undef INSERT
