@@ -308,5 +308,7 @@ static leaf* get_internal(char *key, node *root)
 
 void* rdx_get(char *key, node *root)
 {
-    return get_internal(key, root)->value;
+    leaf *n = get_internal(key, root);
+    if (!n) return NULL;
+    return n->value;
 }
