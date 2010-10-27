@@ -222,13 +222,8 @@ int insert(leaf *newleaf, node *n)
 
     // FIRST: check for common bits
     node *lefty = n->left, *righty = n->right;
-    if (lefty)
-        bits = count_common_bits(key, lefty->key, rdx_min(nklen, lefty->pos)); else
-        bits = -1;
-    if (righty)
-        bits2 = count_common_bits(key, righty->key, rdx_min(nklen, righty->pos));
-    else
-        bits2 = -1;
+    bits = count_common_bits(key, lefty->key, rdx_min(nklen, lefty->pos));
+    bits2 = count_common_bits(key, righty->key, rdx_min(nklen, righty->pos));
 
     if (rdx_min(bits, bits2) < n->pos) {
         if (bits >= bits2)
