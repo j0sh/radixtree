@@ -98,15 +98,20 @@ static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
     if (!inner) return -1;
     inner->color = 0;
     inner->value = NULL;
-    inner->parent = parent;
 
     max_len = rdx_min(newleaf->pos, sibling->pos);
     idx  = count_common_bits(newleaf->key, sibling->key, max_len);
     bit = get_bit_at(newleaf->key, idx);
 
     if (!parent) {
+        // insert at the root, so rotate things like so:
+/*
+           /\    to     /\
+          1  2         /\ 3
+                      1  2                   */
+
         parent = sibling;
-        // do an in-place transform. TODO ascii art
+        inner->parent = parent;
         inner->left = parent->left;
         inner->right = parent->right;
         inner->key = parent->key;
@@ -126,10 +131,11 @@ static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
     }
 
     if (idx < parent->pos) {
-        // in this case, set inner to the two children of parent.
+        // use the parent as a sibling
         return insert_leaf(newleaf, parent, parent->parent);
     } else {
         // otherwise, add newleaf as a child of inner
+        inner->parent = parent;
         inner->pos = idx;
         inner->key = sibling->key;
         newleaf->parent = inner;
