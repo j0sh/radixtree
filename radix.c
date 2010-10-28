@@ -320,10 +320,10 @@ static void reset_key(char *key, char *newkey, rxt_node *n)
     // This should only be propagated up inner nodes.
     // Right now the algorithm guarantees this, but it is unchecked.
 
-    // XXX better to pass in a 3rd 'newkey' parameter instead?
-    // Avoids the checks and cache pressure from probing for key?
     if (key == n->key) {
         n->key = newkey;
+        n->pos = count_common_bits(n->left->key, n->right->key,
+                                   rdx_min(n->left->pos, n->right->pos));
 
         if (n->parent)
             reset_key(key, newkey, n->parent);
