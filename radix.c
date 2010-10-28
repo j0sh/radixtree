@@ -309,6 +309,92 @@ static rxt_node* get_internal(char *key, rxt_node *root)
     return get_internal(key, root->left);
 }
 
+static void *delete_internal(rxt_node *n, rxt_node *sibling)
+{
+    rxt_node *parent = n->parent;
+    void *v = n->value;
+
+    // TODO ascii art
+    if (sibling->color) {
+        parent->value = sibling;
+        parent->left = NULL;
+        parent->right = NULL;
+        parent->color = 2;
+        parent->pos = 0;
+    } else {
+        parent->left = sibling->left;
+        parent->right = sibling->right;
+        parent->pos = sibling->pos;
+        sibling->left->parent = parent;
+        sibling->right->parent = parent;
+        free(sibling);
+    }
+
+    free(n);
+    return v;
+}
+
+void* rxt_delete(char *key, rxt_node *root)
+{
+    rxt_node *parent, *grandparent;
+    rxt_node *n = get_internal(key, root);
+    void *v;
+    if (!n) return; // nonexistent
+
+    v = n->value;
+
+    // remove both the node and the parent inner node
+    parent = n->parent;
+    grandparent = parent->parent;
+
+    if (!grandparent) {
+        if (parent->left == n) {
+            return delete_internal(n, parent->right);
+        } else if (parent->right == n) {
+            return delete_internal(n, parent->left);
+        } else if (parent->value == n) {
+            parent->value = NULL;
+            parent->color = 0;
+            parent->pos = 0;
+        } else
+            printf("something very wrong when removing w/o gp!\n");
+
+        free(n);
+        return v;
+    }
+
+    // properly move around pointers and shit
+    // TODO ascii art
+    if (grandparent->left == n->parent) {
+        if (parent->left == n) {
+            grandparent->left = parent->right;
+            parent->right->parent = grandparent;
+        } else if (parent->right == n) {
+            grandparent->left = parent->left;
+            parent->left->parent = grandparent;
+        } else
+            printf("something very wrong: removing grandparent->left\n");
+    } else if (grandparent->right == n->parent) {
+        if (parent->left == n ) {
+            grandparent->right = parent->right;
+            parent->right->parent = grandparent;
+        } else if (parent->right == n) {
+            grandparent->right = parent->left;
+            parent->left->parent = grandparent;
+        } else
+            printf("something very wrong: removing grandparent->right\n");
+    } else
+        printf("something very wrong: grandparent does not possess child\n");
+
+    grandparent->pos = parent->pos;
+    parent->left = NULL;
+    parent->right = NULL;
+    free(parent);
+    free(n); // we don't dynamically allocate node
+
+    return v;
+}
+
 void* rdx_get(char *key, rxt_node *root)
 {
     rxt_node *n = get_internal(key, root);

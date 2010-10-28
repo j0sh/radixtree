@@ -50,6 +50,7 @@ int main(int argc, char **argv)
 
 #define INSERT(val) rxt_put(#val, reverse(#val), &root)
 #define RGET(val) print_value(val, &root)
+#define RDEL(val) rxt_delete(#val, &root)
 
 #if 0
 // this test set is somewhat broken
@@ -112,5 +113,6 @@ print(&root);
 
 #undef INSERT
 #undef RGET
+#undef RDEL
 
 }
