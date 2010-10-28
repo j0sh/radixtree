@@ -181,11 +181,11 @@ static int insert_internal(rxt_node *newleaf, rxt_node *n)
     if (bits >= bits2) {
          if (left->color)
             return insert_leaf(newleaf, n->left, n);
-        insert_internal(newleaf, left);
+        return insert_internal(newleaf, left);
     } else {
         if (right->color)
             return insert_leaf(newleaf, n->right, n);
-        insert_internal(newleaf, right);
+        return insert_internal(newleaf, right);
     }
 
     return -1; // this should never happen
