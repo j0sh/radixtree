@@ -90,10 +90,10 @@ static inline int rdx_min(int a, int b)
     return a > b ? b : a;
 }
 
-static int insert_leaf(node *newleaf, node *sibling, node *parent)
+static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
 {
     int idx, bit, max_len;
-    node *inner = malloc(sizeof(node));
+    rxt_node *inner = malloc(sizeof(rxt_node));
 
     if (!inner) return -1;
     inner->color = 0;
@@ -157,10 +157,10 @@ static int insert_leaf(node *newleaf, node *sibling, node *parent)
 }
 
 // color: 1 for leaf, 0 for inner
-static int insert_internal(node *newleaf, node *n)
+static int insert_internal(rxt_node *newleaf, rxt_node *n)
 {
     // FIRST: check for common bits
-    node *left = n->left, *right = n->right;
+    rxt_node *left = n->left, *right = n->right;
     int bits   = count_common_bits(newleaf->key, left->key,
                                    rdx_min(newleaf->pos, left->pos));
     int bits2  = count_common_bits(newleaf->key, right->key,
@@ -190,10 +190,10 @@ static inline int keylen(char *str)
     return 8 * (strlen(str) + 1) - 1;
 }
 
-int rxt_put(char *key, void *value, node *n)
+int rxt_put(char *key, void *value, rxt_node *n)
 {
 #define NEWLEAF(nl, k, v) \
-    nl = malloc(sizeof(node)); \
+    nl = malloc(sizeof(rxt_node)); \
     if (!nl) return -1; \
     nl->key = k; \
     nl->pos = keylen(k); \
@@ -203,11 +203,11 @@ int rxt_put(char *key, void *value, node *n)
     nl->left = NULL; \
     nl->right = NULL
 
-    node *newleaf;
+    rxt_node *newleaf;
 
     // this special case takes care of the first two entries
     if (!(n->left || n->right)) {
-        node *sib;
+        rxt_node *sib;
         int bits;
         NEWLEAF(newleaf, key, value);
         // create root
@@ -252,17 +252,17 @@ int rxt_put(char *key, void *value, node *n)
 // prints the tree level by level, for debug purposes.
 // [%d/%d] indicates the current id, and the id of the parent.
 // id is assigned in the order read from the queue.
-void print(node *root)
+void print(rxt_node *root)
 {
     int i, write = 0, read = 0, prev_level = -1;
-    node *queue[100];
+    rxt_node *queue[100];
     for (i = 0; i < 100; i++)queue[i] = NULL;
     root->parent_id = read;
     root->level = 0;
     queue[write++] = root;
 
     while (read != write) {
-        node *n = queue[read++];
+        rxt_node *n = queue[read++];
         // insert linebreak if needed
         if (prev_level != n->level) {
             printf("\n\nlevel %d:\n", n->level);
@@ -272,18 +272,18 @@ void print(node *root)
             printf("%s[%d/%d] , ", n->key, read, n->parent_id);
         else {
             if (n->value)
-                printf("%d (%s)[%d/%d] ,", n->pos, ((node*)n->value)->key, read, n->parent_id);
+                printf("%d (%s)[%d/%d] ,", n->pos, ((rxt_node*)n->value)->key, read, n->parent_id);
             else
                 printf("%d[%d/%d] , ", n->pos, read, n->parent_id);
 
             if (n->left) {
-                node *left = n->left;
+                rxt_node *left = n->left;
                 left->level = n->level + 1;
                 left->parent_id = read;
                 queue[write++] = left;
             }
             if (n->right) {
-                node *right = n->right;
+                rxt_node *right = n->right;
                 right->level = n->level + 1;
                 right->parent_id = read;
                 queue[write++] = right;
@@ -293,7 +293,7 @@ void print(node *root)
     printf("\n");
 }
 
-static node* get_internal(char *key, node *root)
+static rxt_node* get_internal(char *key, rxt_node *root)
 {
     if (!root) return NULL;
 
@@ -309,9 +309,9 @@ static node* get_internal(char *key, node *root)
     return get_internal(key, root->left);
 }
 
-void* rdx_get(char *key, node *root)
+void* rdx_get(char *key, rxt_node *root)
 {
-    node *n = get_internal(key, root);
+    rxt_node *n = get_internal(key, root);
     if (!n) return NULL;
     return n->value;
 }

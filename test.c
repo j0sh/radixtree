@@ -14,13 +14,13 @@ static char *reverse(char *c)
     return str;
 }
 
-static int count_comparisons(node *root)
+static int count_comparisons(rxt_node *root)
 {
     if (!root || root->color) return 0;
     return root->pos + count_comparisons(root->left) + count_comparisons(root->right);
 }
 
-static void print_in_order(node *root)
+static void print_in_order(rxt_node *root)
 {
     if (!root) return;
     if (root->color) {
@@ -32,7 +32,7 @@ static void print_in_order(node *root)
     print_in_order(root->right);
 }
 
-static void print_value(char *key, node *root)
+static void print_value(char *key, rxt_node *root)
 {
     char *value = rdx_get(key, root);
     if (value)
@@ -43,7 +43,7 @@ static void print_value(char *key, node *root)
 
 int main(int argc, char **argv)
 {
-    node root;
+    rxt_node root;
     root.left = root.right = NULL;
     root.parent = root.value = NULL;
     root.color = 0;
