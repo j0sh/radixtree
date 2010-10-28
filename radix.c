@@ -309,6 +309,21 @@ static rxt_node* get_internal(char *key, rxt_node *root)
     return get_internal(key, root->left);
 }
 
+static void reset_key(char *key, char *newkey, rxt_node *n)
+{
+    // This should only be propagated up inner nodes.
+    // Right now the algorithm guarantees this, but it is unchecked.
+
+    // XXX better to pass in a 3rd 'newkey' parameter instead?
+    // Avoids the checks and cache pressure from probing for key?
+    if (key == n->key) {
+        n->key = newkey;
+
+        if (n->parent)
+            reset_key(key, newkey, n->parent);
+    }
+}
+
 static void *delete_internal(rxt_node *n, rxt_node *sibling)
 {
     rxt_node *parent = n->parent;
@@ -330,6 +345,7 @@ static void *delete_internal(rxt_node *n, rxt_node *sibling)
         free(sibling);
     }
 
+    reset_key(n->key, sibling->key, parent);
     free(n);
     return v;
 }
@@ -339,11 +355,13 @@ void* rxt_delete(char *key, rxt_node *root)
     rxt_node *parent, *grandparent;
     rxt_node *n = get_internal(key, root);
     void *v;
+    char *newkey;
     if (!n) return; // nonexistent
 
     v = n->value;
 
     // remove both the node and the parent inner node
+    // XXX TODO FIXME Still somewhat broken. Figure out.
     parent = n->parent;
     grandparent = parent->parent;
 
@@ -366,6 +384,7 @@ void* rxt_delete(char *key, rxt_node *root)
     // properly move around pointers and shit
     // TODO ascii art
     if (grandparent->left == n->parent) {
+        newkey = grandparent->right->key; // not sure if this is correct
         if (parent->left == n) {
             grandparent->left = parent->right;
             parent->right->parent = grandparent;
@@ -375,6 +394,7 @@ void* rxt_delete(char *key, rxt_node *root)
         } else
             printf("something very wrong: removing grandparent->left\n");
     } else if (grandparent->right == n->parent) {
+        newkey = grandparent->left->key;
         if (parent->left == n ) {
             grandparent->right = parent->right;
             parent->right->parent = grandparent;
@@ -387,6 +407,7 @@ void* rxt_delete(char *key, rxt_node *root)
         printf("something very wrong: grandparent does not possess child\n");
 
     grandparent->pos = parent->pos;
+    reset_key(n->key, newkey, grandparent);
     parent->left = NULL;
     parent->right = NULL;
     free(parent);
