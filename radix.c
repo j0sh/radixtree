@@ -131,7 +131,7 @@ static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
     } else {
         // otherwise, add newleaf as a child of inner
         inner->pos = idx;
-        inner->key = newleaf->key;
+        inner->key = sibling->key;
         newleaf->parent = inner;
         sibling->parent = inner;
 
@@ -234,7 +234,7 @@ int rxt_put(char *key, void *value, rxt_node *n)
             n->left = newleaf;
         }
         n->value = NULL;
-        n->key = key;
+        n->key = sib->key;
         n->pos = bits;
         n->color = 0;
         return 0;
