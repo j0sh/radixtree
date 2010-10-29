@@ -10,7 +10,7 @@
 
 #include "radix.h"
 
-#ifdef MSB_FIRST
+#ifndef LSB_FIRST
 static inline int count_bits(char *k1, char *k2, int count)
 {
     int mask = 128;
@@ -43,7 +43,6 @@ static inline int count_bits(char *k1, char *k2, int count)
 static int count_common_bits(char *k1, char *k2, int max)
 {
     int count = max;
-    // Look at the MSB first;
     // XXX SIMD-ify?
     while (*k1 == *k2 && count >= sizeof(int) * 8) {
         int *i1 = (int*)k1, *i2 = (int*)k2;
@@ -62,7 +61,7 @@ static int count_common_bits(char *k1, char *k2, int max)
     return max - count_bits(k1, k2, count);
 }
 
-#ifdef MSB_FIRST
+#ifndef LSB_FIRST
 static inline int shift(int i)
 {
     return 128 >> (i & 7);
@@ -76,9 +75,6 @@ static inline int shift(int i)
 
 static inline int get_bit_at(char *k, int i)
 {
-    // for 0 === i mod 8, look at the LSB.
-    // zero based index, so for 1 == i mod 8,
-    // look at second bit. slightly unintuitive
     int bytes = i >> 3;
     int mask = shift(i);
     k += bytes;
