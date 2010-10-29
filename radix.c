@@ -131,6 +131,15 @@ static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
         return insert_leaf(newleaf, parent, parent->parent);
     } else {
         // otherwise, add newleaf as a child of inner
+
+        // Check for duplicates.
+        // FIXME feels hackish; do this properly.
+        if (newleaf->pos == sibling->pos &&
+            !strncmp(newleaf->key, sibling->key, newleaf->pos)) {
+            free(inner);
+            return -1;
+        }
+
         inner->parent = parent;
         inner->pos = idx;
         inner->key = sibling->key;

@@ -93,6 +93,7 @@ print(&root);
     INSERT(romanus);
     INSERT(rubicon);
     INSERT(romulus);
+    INSERT(romulus);
     INSERT(rubens);
     INSERT(ruber);
     INSERT(rubicundus);
