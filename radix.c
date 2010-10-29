@@ -422,7 +422,7 @@ void* rxt_delete(char *key, rxt_node *root)
     return v;
 }
 
-void* rdx_get(char *key, rxt_node *root)
+void* rxt_get(char *key, rxt_node *root)
 {
     rxt_node *n = get_internal(key, root);
     if (!n) return NULL;

@@ -34,7 +34,7 @@ static void print_in_order(rxt_node *root)
 
 static void print_value(char *key, rxt_node *root)
 {
-    char *value = rdx_get(key, root);
+    char *value = rxt_get(key, root);
     if (value)
         printf("%s: %s\n", key, value);
     else
