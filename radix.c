@@ -428,3 +428,8 @@ void* rdx_get(char *key, rxt_node *root)
     if (!n) return NULL;
     return n->value;
 }
+
+void rxt_init(rxt_node *root)
+{
+    memset(root, 0, sizeof(rxt_node));
+}

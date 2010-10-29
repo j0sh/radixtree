@@ -17,5 +17,6 @@ void print(rxt_node*);
 int rxt_put(char*, void *, rxt_node*);
 void* rdx_get(char*, rxt_node*);
 void* rxt_delete(char*, rxt_node*);
+void rxt_init(rxt_node *root);
 
 #endif // RADIXTREE
