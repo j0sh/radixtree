@@ -13,7 +13,7 @@ typedef struct rxt_node {
     struct rxt_node *right;
 }rxt_node;
 
-void print(rxt_node*);
+void rxt_print(rxt_node*); // only for debugging small trees
 int rxt_put(char*, void *, rxt_node*);
 void* rxt_get(char*, rxt_node*);
 void* rxt_delete(char*, rxt_node*);

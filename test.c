@@ -44,9 +44,7 @@ static void print_value(char *key, rxt_node *root)
 int main(int argc, char **argv)
 {
     rxt_node root;
-    root.left = root.right = NULL;
-    root.parent = root.value = NULL;
-    root.color = 0;
+    rxt_init(&root);
 
 #define INSERT(val) rxt_put(#val, reverse(#val), &root)
 #define RGET(val) print_value(val, &root)
@@ -98,17 +96,23 @@ print(&root);
     INSERT(rubens);
     INSERT(ruber);
     INSERT(rubicundus);
+    RDEL(rubicon);
+    RDEL(romane);
+    RDEL(romulus);
+    RDEL(rubens);
+    rxt_print(&root); printf("-------------\n");
 
-    print(&root);
     RGET("romane");
+    RGET("romanus");
     RGET("romulus");
+    RGET("rubicon");
     RGET("rubens");
     RGET("ruber");
-    RGET("rubicon");
-    RGET("romanus");
+    RGET("rubicundus");
 #endif
 
-    print_in_order(&root);
+    printf("---------------\n");
+    //print_in_order(&root);
     printf("COMPARISONS: %d\n", count_comparisons(&root));
 
 #undef INSERT

@@ -257,8 +257,10 @@ int rxt_put(char *key, void *value, rxt_node *n)
 
 // prints the tree level by level, for debug purposes.
 // [%d/%d] indicates the current id, and the id of the parent.
+// (%s) indicates an inner node's key.
 // id is assigned in the order read from the queue.
-void print(rxt_node *root)
+// XXX only use this for debugging small (<50key) trees!
+void rxt_print(rxt_node *root)
 {
     int i, write = 0, read = 0, prev_level = -1;
     rxt_node *queue[100];
@@ -280,7 +282,7 @@ void print(rxt_node *root)
             if (n->value)
                 printf("%d (%s)[%d/%d] ,", n->pos, ((rxt_node*)n->value)->key, read, n->parent_id);
             else
-                printf("%d[%d/%d] , ", n->pos, read, n->parent_id);
+                printf("%d (%s)[%d/%d] , ", n->pos, n->key, read, n->parent_id);
 
             if (n->left) {
                 rxt_node *left = n->left;
