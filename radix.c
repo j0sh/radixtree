@@ -436,7 +436,10 @@ void* rxt_get(char *key, rxt_node *root)
     return n->value;
 }
 
-void rxt_init(rxt_node *root)
+rxt_node *rxt_init()
 {
+    rxt_node *root = malloc(sizeof(rxt_node));
+    if (!root) return NULL;
     memset(root, 0, sizeof(rxt_node));
+    return root;
 }

@@ -43,12 +43,11 @@ static void print_value(char *key, rxt_node *root)
 
 int main(int argc, char **argv)
 {
-    rxt_node root;
-    rxt_init(&root);
+    rxt_node *root = rxt_init();
 
-#define INSERT(val) rxt_put(#val, reverse(#val), &root)
-#define RGET(val) print_value(val, &root)
-#define RDEL(val) rxt_delete(#val, &root)
+#define INSERT(val) rxt_put(#val, reverse(#val), root)
+#define RGET(val) print_value(val, root)
+#define RDEL(val) rxt_delete(#val, root)
 
 #if 0
 // this test set is somewhat broken
@@ -114,7 +113,7 @@ print(&root);
 
     printf("---------------\n");
     //print_in_order(&root);
-    printf("COMPARISONS: %d\n", count_comparisons(&root));
+    printf("COMPARISONS: %d\n", count_comparisons(root));
 
 #undef INSERT
 #undef RGET
