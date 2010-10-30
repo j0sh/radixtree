@@ -1,0 +1,72 @@
+The Finest Radix Tree this side of the Linux Kernel
+Josh Allmann <joshua.allmann@gmail.com>
+
+Implementation of a Radix Tree. This is well suited to 'dense' sets
+of keys, eg those that have many leading bits in common (a prefix).
+For more information on the Radix Tree and its variations, see:
+
+  * http://www.csse.monash.edu.au/~lloyd/tildeAlgDS/Tree/PATRICIA/
+  * http://cr.yp.to/critbit.html
+  * https://secure.wikimedia.org/wikipedia/en/wiki/Radix_tree
+
+Keys are character strings, and must be null terminated. They are *not*
+copied within the tree, and must be malloc'd/free'd on your own.
+
+API:
+
+    void rxt_init(rxt_node *root);
+
+Initializes a radix tree node. The memory is expected to already have
+been allocated; rxt_init essentially zeros out everything.
+
+    void* rxt_get(char *key, rxt_node *root);
+
+Returns the value associated with the key, starting the search from
+the node at root. If the key is not found, NULL is returned.
+
+    int rxt_put(char *key, void *value, rxt_node *root);
+
+Inserts the key in the tree, starting from the root node. Note that
+keys are expected to be managed out-of-tree; when inserting a new node,
+only a pointer is set to the key. No extra space is allocated, and
+the key is not strcpy()'d anywhere. The key must be null terminated.
+
+Returns 0 for success, -1 for error. This could indicate a malloc error,
+or an already existing key (values will not be overwritten).
+
+    void* rxt_delete(char *key, rxt_node *root);
+
+Removes the key from the tree, and returns its value. If the key
+is not found, NULL is returned.
+
+    void rxt_free(char *key);
+
+Empties and frees the nodes in the tree. Since this excludes keys and
+values, this might not be very useful unless the K/Vs are managed out-of-
+tree.
+
+Extras:
+
+   -DLSB_FIRST
+
+This compiler flag will start the bit comparision at the LSB (least
+significant bit), rather than the MSB as is the default.
+
+This will result in fewer compares when inserting and deleting, and
+thus slightly faster performance. However, lexical ordering is lost
+after the first differing byte*, and results may be unpredictable if
+a strict ordering is needed. Eg, a LSB-first comparison would rank
+"foob" before "fooa" because 'a' is ASCII 97 and 'b' is ASCII 98,
+and the even final bit of 'b' is first, before the odd bit of 'a'.
+
+* LSB (or MSB)-first searches are only done at the first differing byte
+between two keys. Bytes are still searched in order; it is the bits
+within those bytes that are compared differently.
+
+For example, given two keys "fooa" and "foob", "foo" would be skipped
+over, then the LSB search would kick in when comparing "a" and "b".
+Sort of a reverse endianness.
+
+LICENSE:
+
+Simplified BSD. See LICENSE file.
