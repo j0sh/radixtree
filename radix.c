@@ -89,11 +89,8 @@ static inline int rdx_min(int a, int b)
 static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
 {
     int idx, bit, max_len;
-    rxt_node *inner = malloc(sizeof(rxt_node));
+    rxt_node *inner;
 
-    if (!inner) return -1;
-    inner->color = 0;
-    inner->value = NULL;
 
     max_len = rdx_min(newleaf->pos, sibling->pos);
     idx  = count_common_bits(newleaf->key, sibling->key, max_len);
@@ -107,6 +104,10 @@ static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
                       1  2                   */
 
         parent = sibling;
+        inner = malloc(sizeof(rxt_node));
+        if (!inner) return -1;
+        inner->color = 0;
+        inner->value = NULL;
         inner->parent = parent;
         inner->left = parent->left;
         inner->right = parent->right;
@@ -136,10 +137,13 @@ static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
         // FIXME feels hackish; do this properly.
         if (newleaf->pos == sibling->pos &&
             !strncmp(newleaf->key, sibling->key, newleaf->pos)) {
-            free(inner);
             return -1;
         }
 
+        inner = malloc(sizeof(rxt_node));
+        if (!inner) free(inner);
+        inner->color = 0;
+        inner->value = NULL;
         inner->parent = parent;
         inner->pos = idx;
         inner->key = sibling->key;
