@@ -215,12 +215,12 @@ int rxt_put(char *key, void *value, rxt_node *n)
     nl->right = NULL
 
     rxt_node *newleaf;
+    NEWLEAF(newleaf, key, value);
 
     // this special case takes care of the first two entries
     if (!(n->left || n->right)) {
         rxt_node *sib;
         int bits;
-        NEWLEAF(newleaf, key, value);
         // create root
         if (!n->value) {
             // attach root
@@ -230,7 +230,6 @@ int rxt_put(char *key, void *value, rxt_node *n)
         }
         // else convert root to inner and attach leaves
         sib = n->value;
-        NEWLEAF(newleaf, key, value);
 
         // count bits in common
         bits = count_common_bits(key, sib->key,
@@ -251,8 +250,6 @@ int rxt_put(char *key, void *value, rxt_node *n)
         return 0;
     }
 
-
-    NEWLEAF(newleaf, key, value);
     newleaf->parent = NULL; // null for now
 
     return insert_internal(newleaf, n);
