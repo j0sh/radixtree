@@ -430,6 +430,14 @@ void* rxt_delete(char *key, rxt_node *root)
     return v;
 }
 
+void rxt_free(rxt_node *root)
+{
+    if (!root) return;
+    rxt_free(root->left);
+    rxt_free(root->right);
+    free(root);
+}
+
 void* rxt_get(char *key, rxt_node *root)
 {
     rxt_node *n = get_internal(key, root);

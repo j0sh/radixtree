@@ -115,6 +115,8 @@ print(&root);
     //print_in_order(&root);
     printf("COMPARISONS: %d\n", count_comparisons(root));
 
+    rxt_free(root);
+
 #undef INSERT
 #undef RGET
 #undef RDEL

@@ -17,6 +17,7 @@ void rxt_print(rxt_node*); // only for debugging small trees
 int rxt_put(char*, void *, rxt_node*);
 void* rxt_get(char*, rxt_node*);
 void* rxt_delete(char*, rxt_node*);
+void rxt_free(rxt_node *);
 rxt_node *rxt_init();
 
 #endif // RADIXTREE
