@@ -420,7 +420,6 @@ void* rxt_delete(char *key, rxt_node *root)
     } else
         printf("something very wrong: grandparent does not possess child\n");
 
-    grandparent->pos = parent->pos;
     reset_key(n->key, newkey, grandparent);
     parent->left = NULL;
     parent->right = NULL;
