@@ -329,7 +329,8 @@ static void reset_key(char *key, char *newkey, rxt_node *n)
 
     if (key == n->key) {
         n->key = newkey;
-        n->pos = count_common_bits(n->left->key, n->right->key,
+        if (n->left && n->right)
+            n->pos = count_common_bits(n->left->key, n->right->key,
                                    rdx_min(n->left->pos, n->right->pos));
 
         if (n->parent)
