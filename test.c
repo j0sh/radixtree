@@ -4,6 +4,52 @@
 
 #include "radix.h"
 
+// prints the tree level by level, for debug purposes.
+// [%d/%d] indicates the current id, and the id of the parent.
+// (%s) indicates an inner node's key.
+// id is assigned in the order read from the queue.
+// XXX only use this for debugging small (<50key) trees!
+static void print_tree(rxt_node *root)
+{
+    int i, write = 0, read = 0, prev_level = -1;
+    rxt_node *queue[100];
+    for (i = 0; i < 100; i++)queue[i] = NULL;
+    root->parent_id = read;
+    root->level = 0;
+    queue[write++] = root;
+
+    while (read != write) {
+        rxt_node *n = queue[read++];
+        // insert linebreak if needed
+        if (prev_level != n->level) {
+            printf("\n\nlevel %d:\n", n->level);
+            prev_level = n->level;
+        }
+        if (n->color)
+            printf("%s[%d/%d] , ", n->key, read, n->parent_id);
+        else {
+            if (n->value)
+                printf("%d (%s)[%d/%d] ,", n->pos, ((rxt_node*)n->value)->key, read, n->parent_id);
+            else
+                printf("%d (%s)[%d/%d] , ", n->pos, n->key, read, n->parent_id);
+
+            if (n->left) {
+                rxt_node *left = n->left;
+                left->level = n->level + 1;
+                left->parent_id = read;
+                queue[write++] = left;
+            }
+            if (n->right) {
+                rxt_node *right = n->right;
+                right->level = n->level + 1;
+                right->parent_id = read;
+                queue[write++] = right;
+            }
+        }
+    }
+    printf("\n");
+}
+
 static char *reverse(char *c)
 {
     int len = strlen(c), i;
@@ -100,7 +146,7 @@ print(&root);
     RDEL(romane);
     RDEL(romulus);
     RDEL(rubens);
-    rxt_print(root); printf("-------------\n");
+    print_tree(root); printf("-------------\n");
 
     RGET("romane");
     RGET("romanus");
