@@ -100,7 +100,7 @@ print(&root);
     RDEL(romane);
     RDEL(romulus);
     RDEL(rubens);
-    rxt_print(&root); printf("-------------\n");
+    rxt_print(root); printf("-------------\n");
 
     RGET("romane");
     RGET("romanus");
