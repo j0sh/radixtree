@@ -14,10 +14,11 @@ copied within the tree, and must be malloc'd/free'd on your own.
 
 API:
 
-    void rxt_init(rxt_node *root);
+    rxt_node *rxt_init();
 
-Initializes a radix tree node. The memory is expected to already have
-been allocated; rxt_init essentially zeros out everything.
+Initializes a radix tree node. This will allocate memory for the
+root node and zero it out. It should be freed with rxt_free. Returns
+a pointer to the root node, or NULL if malloc fails.
 
     void* rxt_get(char *key, rxt_node *root);
 
