@@ -258,7 +258,7 @@ int rxt_put(char *key, void *value, rxt_node *n)
 
     return insert_internal(newleaf, n);
 
-#undef NEWELEAF
+#undef NEWLEAF
 }
 
 // prints the tree level by level, for debug purposes.
