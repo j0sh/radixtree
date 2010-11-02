@@ -389,6 +389,10 @@ void rxt_free(rxt_node *root)
     if (!root) return;
     rxt_free(root->left);
     rxt_free(root->right);
+    if (root->value) free(root->value);
+    root->left = NULL;
+    root->right = NULL;
+    root->value = NULL;
     free(root);
 }
 
