@@ -167,4 +167,5 @@ print(&root);
 #undef RGET
 #undef RDEL
 
+    return 0;
 }

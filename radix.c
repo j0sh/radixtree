@@ -325,7 +325,7 @@ void* rxt_delete(char *key, rxt_node *root)
     rxt_node *n = get_internal(key, root);
     void *v;
     char *newkey;
-    if (!n) return; // nonexistent
+    if (!n) return NULL; // nonexistent
 
     v = n->value;
 
