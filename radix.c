@@ -137,6 +137,7 @@ static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
         // FIXME feels hackish; do this properly.
         if (newleaf->pos == sibling->pos &&
             !strncmp(newleaf->key, sibling->key, newleaf->pos)) {
+            free(newleaf);
             return -1;
         }
 
