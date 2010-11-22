@@ -203,7 +203,11 @@ static int insert_internal(rxt_node *newleaf, rxt_node *n)
 
 static inline int keylen(char *str)
 {
-    return 8 * (strlen(str) + 1) - 1;
+    int len = strlen(str);
+    if (len < 0 || len >= RADIXTREE_KEYSIZE)
+        fprintf(stderr, "Warning: rxt key (%d) exceeds limit (%d)\n",
+                len, RADIXTREE_KEYSIZE);
+    return 8 * (len + 1) - 1;
 }
 
 int rxt_put(char *key, void *value, rxt_node *n)
@@ -211,7 +215,9 @@ int rxt_put(char *key, void *value, rxt_node *n)
 #define NEWLEAF(nl, k, v) \
     nl = malloc(sizeof(rxt_node)); \
     if (!nl) return -1; \
-    nl->key = k; \
+    strncpy(nl->keycache, k, RADIXTREE_KEYSIZE); \
+    nl->keycache[RADIXTREE_KEYSIZE-1] = '\0'; \
+    nl->key = nl->keycache; \
     nl->pos = keylen(k); \
     nl->value = v; \
     nl->color = 1; \

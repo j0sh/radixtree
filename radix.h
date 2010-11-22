@@ -1,11 +1,14 @@
 #ifndef RADIXTREE
 #define RADIXTREE
 
+#define RADIXTREE_KEYSIZE 128
+
 typedef struct rxt_node {
     int color;
     char *key;
     void *value;
     int pos; // bit index of the key to compare at (critical position)
+    char keycache[RADIXTREE_KEYSIZE];
     int level; // tree level; for debug only
     int parent_id; //for debug only
     struct rxt_node *parent;

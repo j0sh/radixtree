@@ -9,8 +9,7 @@ For more information on the Radix Tree and its variations, see:
   * http://cr.yp.to/critbit.html
   * https://secure.wikimedia.org/wikipedia/en/wiki/Radix_tree
 
-Keys are character strings, and must be null terminated. They are *not*
-copied within the tree, and must be malloc'd/free'd on your own.
+Keys are character strings, and must be null terminated.
 
 API:
 
@@ -27,10 +26,8 @@ the node at root. If the key is not found, NULL is returned.
 
     int rxt_put(char *key, void *value, rxt_node *root);
 
-Inserts the key in the tree, starting from the root node. Note that
-keys are expected to be managed out-of-tree; when inserting a new node,
-only a pointer is set to the key. No extra space is allocated, and
-the key is not strcpy()'d anywhere. The key must be null terminated.
+Inserts the key in the tree, starting from the root node. The key must
+be null terminated.
 
 Returns 0 for success, -1 for error. This could indicate a malloc error,
 or an already existing key (values will not be overwritten).
