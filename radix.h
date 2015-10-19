@@ -6,6 +6,7 @@
 typedef struct rxt_node {
     int color;
     char *key;
+    int ksize;
     void *value;
     int pos; // bit index of the key to compare at (critical position)
     char keycache[RADIXTREE_KEYSIZE];
@@ -19,6 +20,11 @@ typedef struct rxt_node {
 int rxt_put(char*, void *, rxt_node*);
 void* rxt_get(char*, rxt_node*);
 void* rxt_delete(char*, rxt_node*);
+
+int rxt_put2(void *key, int ksize, void *value, rxt_node *n);
+void* rxt_get2(void*, int ksize, rxt_node*);
+void* rxt_delete2(void*, int ksize, rxt_node*);
+
 void rxt_free(rxt_node *);
 rxt_node *rxt_init();
 
