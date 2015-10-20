@@ -10,8 +10,10 @@ typedef struct rxt_node {
     void *value;
     int pos; // bit index of the key to compare at (critical position)
     long keycache[RADIXTREE_KEYSIZE/sizeof(long)];
+#ifdef RADIXTREE_DEBUG
     int level; // tree level; for debug only
     int parent_id; //for debug only
+#endif
     struct rxt_node *parent;
     struct rxt_node *left;
     struct rxt_node *right;

@@ -3,12 +3,13 @@
 
 all: test test-ipv6
 
-COMMON=radix.c
+CFLAGS=-g -DRADIXTREE_DEBUG -DLSB_FIRST
+COMMON=radix.c radix.h
 test: $(COMMON) test.c
-	gcc -g -DLSB_FIRST radix.c test.c -o $@
+	gcc $(CFLAGS) radix.c test.c -o $@
 
 test-ipv6: $(COMMON)  test-ipv6.c
-	gcc -g -DLSB_FIRST radix.c test-ipv6.c -o $@
+	gcc $(CFLAGS) radix.c test-ipv6.c -o $@
 
 check: test-ipv6
 	./test-ipv6
