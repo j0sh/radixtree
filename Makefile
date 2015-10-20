@@ -12,3 +12,6 @@ test-ipv6: $(COMMON)  test-ipv6.c
 
 check: test-ipv6
 	./test-ipv6
+
+clean:
+	rm -f test-ipv6 test *~
