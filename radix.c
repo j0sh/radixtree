@@ -44,21 +44,24 @@ static int count_common_bits(char *k1, char *k2, int max)
 {
     int count = max;
     // XXX SIMD-ify?
-    while (*k1 == *k2 && count >= sizeof(int) * 8) {
-        int *i1 = (int*)k1, *i2 = (int*)k2;
+
+    while (count >= sizeof(long) * 8 && *k1 == *k2) {
+        long *i1 = (long*)k1, *i2 = (long*)k2;
         if (*i1 == *i2) {
-            k1 += sizeof(int);
-            k2 += sizeof(int);
-            count -= sizeof(int) * 8;
+            k1 += sizeof(long);
+            k2 += sizeof(long);
+            count -= sizeof(long) * 8;
         } else break;
     }
-    while (*k1 == *k2 && count >= 8) {
+    while (count >= 8 && *k1 == *k2) {
         k1++;
         k2++;
         count -= 8;
     }
-
-    return max - count_bits(k1, k2, count);
+    if (count > 0)
+        return max - count_bits(k1, k2, count);
+    else
+        return max;
 }
 
 #ifndef LSB_FIRST
@@ -112,6 +115,7 @@ static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
         inner->left = parent->left;
         inner->right = parent->right;
         inner->key = parent->key;
+        inner->ksize = parent->ksize;
         inner->pos = parent->pos;
         parent->pos = idx;
         parent->left->parent = inner;
@@ -136,7 +140,8 @@ static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
         // Check for duplicates.
         // FIXME feels hackish; do this properly.
         if (newleaf->pos == sibling->pos &&
-            !strncmp(newleaf->key, sibling->key, newleaf->pos)) {
+            newleaf->ksize <= sibling->ksize &&
+            !memcmp(newleaf->key, sibling->key, newleaf->ksize)) {
             free(newleaf);
             return -1;
         }
@@ -148,6 +153,7 @@ static int insert_leaf(rxt_node *newleaf, rxt_node *sibling, rxt_node *parent)
         inner->parent = parent;
         inner->pos = idx;
         inner->key = sibling->key;
+        inner->ksize = sibling->ksize;
         newleaf->parent = inner;
         sibling->parent = inner;
 
@@ -201,24 +207,20 @@ static int insert_internal(rxt_node *newleaf, rxt_node *n)
     return -1; // this should never happen
 }
 
-static inline int keylen(char *str)
-{
-    int len = strlen(str);
-    if (len < 0 || len >= RADIXTREE_KEYSIZE)
-        fprintf(stderr, "Warning: rxt key (%d) exceeds limit (%d)\n",
-                len, RADIXTREE_KEYSIZE);
-    return 8 * (len + 1) - 1;
-}
-
 int rxt_put(char *key, void *value, rxt_node *n)
 {
-#define NEWLEAF(nl, k, v) \
+    return rxt_put2(key, strlen(key)+1, value, n);
+}
+
+int rxt_put2(void *key, int ksize, void *value, rxt_node *n)
+{
+#define NEWLEAF(nl, k, ksize, v) \
     nl = malloc(sizeof(rxt_node)); \
     if (!nl) return -1; \
-    strncpy(nl->keycache, k, RADIXTREE_KEYSIZE); \
-    nl->keycache[RADIXTREE_KEYSIZE-1] = '\0'; \
-    nl->key = nl->keycache; \
-    nl->pos = keylen(k); \
+    memcpy(nl->keycache, k, ksize); \
+    nl->key = (void*)nl->keycache; \
+    nl->ksize = ksize; \
+    nl->pos = (8*ksize)-1; \
     nl->value = v; \
     nl->color = 1; \
     nl->parent = n; \
@@ -226,7 +228,14 @@ int rxt_put(char *key, void *value, rxt_node *n)
     nl->right = NULL
 
     rxt_node *newleaf;
-    NEWLEAF(newleaf, key, value);
+
+    if (ksize < 1 || ksize >= sizeof(n->keycache)) {
+        fprintf(stderr, "Warning: rxt key (%d) exceeds limit (%d)\n",
+                ksize, RADIXTREE_KEYSIZE);
+        return -1;
+    }
+
+    NEWLEAF(newleaf, key, ksize, value);
 
     // this special case takes care of the first two entries
     if (!(n->left || n->right)) {
@@ -246,7 +255,6 @@ int rxt_put(char *key, void *value, rxt_node *n)
         bits = count_common_bits(key, sib->key,
                     rdx_min(newleaf->pos, sib->pos));
 
-
         if (get_bit_at(key, bits)) {
             n->right = newleaf;
             n->left = sib;
@@ -256,6 +264,7 @@ int rxt_put(char *key, void *value, rxt_node *n)
         }
         n->value = NULL;
         n->key = sib->key;
+        n->ksize = sib->ksize;
         n->pos = bits;
         n->color = 0;
         return 0;
@@ -268,20 +277,20 @@ int rxt_put(char *key, void *value, rxt_node *n)
 #undef NEWLEAF
 }
 
-static rxt_node* get_internal(char *key, rxt_node *root)
+static rxt_node* get_internal(void *key, int ksize, rxt_node *root)
 {
     if (!root) return NULL;
 
     if (root->color) {
         if (2 == root->color) root = root->value;
-        if (!strncmp(key, root->key, root->pos))
+        if (root->ksize <= ksize && !memcmp(key, root->key, root->ksize))
             return root;
         return NULL;
     }
 
     if (get_bit_at(key, root->pos))
-        return get_internal(key, root->right);
-    return get_internal(key, root->left);
+        return get_internal(key, ksize, root->right);
+    return get_internal(key, ksize, root->left);
 }
 
 static void reset_key(char *key, char *newkey, rxt_node *n)
@@ -328,8 +337,13 @@ static void *delete_internal(rxt_node *n, rxt_node *sibling)
 
 void* rxt_delete(char *key, rxt_node *root)
 {
+	return rxt_delete2(key, strlen(key)+1, root);
+}
+
+void* rxt_delete2(void *key, int ksize, rxt_node *root)
+{
     rxt_node *parent, *grandparent;
-    rxt_node *n = get_internal(key, root);
+    rxt_node *n = get_internal(key, ksize, root);
     void *v;
     char *newkey;
     if (!n) return NULL; // nonexistent
@@ -405,7 +419,12 @@ void rxt_free(rxt_node *root)
 
 void* rxt_get(char *key, rxt_node *root)
 {
-    rxt_node *n = get_internal(key, root);
+    return rxt_get2(key, strlen(key)+1, root);
+}
+
+void* rxt_get2(void *key, int ksize, rxt_node *root)
+{
+    rxt_node *n = get_internal(key, ksize, root);
     if (!n) return NULL;
     return n->value;
 }
