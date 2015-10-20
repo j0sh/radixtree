@@ -45,7 +45,7 @@ static int count_common_bits(char *k1, char *k2, int max)
     int count = max;
     // XXX SIMD-ify?
 
-    while (*k1 == *k2 && count >= sizeof(int) * 8) {
+    while (count >= sizeof(long) * 8 && *k1 == *k2) {
         long *i1 = (long*)k1, *i2 = (long*)k2;
         if (*i1 == *i2) {
             k1 += sizeof(long);
@@ -53,7 +53,7 @@ static int count_common_bits(char *k1, char *k2, int max)
             count -= sizeof(long) * 8;
         } else break;
     }
-    while (*k1 == *k2 && count >= 8) {
+    while (count >= 8 && *k1 == *k2) {
         k1++;
         k2++;
         count -= 8;
@@ -218,7 +218,7 @@ int rxt_put2(void *key, int ksize, void *value, rxt_node *n)
     nl = malloc(sizeof(rxt_node)); \
     if (!nl) return -1; \
     memcpy(nl->keycache, k, ksize); \
-    nl->key = nl->keycache; \
+    nl->key = (void*)nl->keycache; \
     nl->ksize = ksize; \
     nl->pos = (8*ksize)-1; \
     nl->value = v; \

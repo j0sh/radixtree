@@ -9,7 +9,7 @@ typedef struct rxt_node {
     int ksize;
     void *value;
     int pos; // bit index of the key to compare at (critical position)
-    char keycache[RADIXTREE_KEYSIZE];
+    long keycache[RADIXTREE_KEYSIZE/sizeof(long)];
     int level; // tree level; for debug only
     int parent_id; //for debug only
     struct rxt_node *parent;
