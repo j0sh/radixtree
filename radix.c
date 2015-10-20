@@ -46,11 +46,11 @@ static int count_common_bits(char *k1, char *k2, int max)
     // XXX SIMD-ify?
 
     while (*k1 == *k2 && count >= sizeof(int) * 8) {
-        int *i1 = (int*)k1, *i2 = (int*)k2;
+        long *i1 = (long*)k1, *i2 = (long*)k2;
         if (*i1 == *i2) {
-            k1 += sizeof(int);
-            k2 += sizeof(int);
-            count -= sizeof(int) * 8;
+            k1 += sizeof(long);
+            k2 += sizeof(long);
+            count -= sizeof(long) * 8;
         } else break;
     }
     while (*k1 == *k2 && count >= 8) {
